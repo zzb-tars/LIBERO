@@ -161,7 +161,12 @@ class Benchmark(abc.ABC):
             self.tasks[i].problem_folder,
             self.tasks[i].init_states_file,
         )
-        init_states = torch.load(init_states_path)
+        # PyTorch >=2.6 defaults to weights_only=True, which breaks loading
+        # LIBERO init-state files that are general pickled objects.
+        try:
+            init_states = torch.load(init_states_path, weights_only=False)
+        except TypeError:
+            init_states = torch.load(init_states_path)
         return init_states
 
     def set_task_embs(self, task_embs):
